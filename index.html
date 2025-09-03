@@ -1,0 +1,439 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Satellite Login</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background: linear-gradient(135deg, #0a192f 0%, #203a43 50%, #2c5364 100%);
+            overflow: hidden;
+            position: relative;
+            padding: 20px;
+        }
+
+        /* Satellite and star elements */
+        .satellite {
+            position: absolute;
+            width: 60px;
+            height: 20px;
+            background: #ffffff;
+            border-radius: 10px;
+            box-shadow: 0 0 20px rgba(0, 150, 255, 0.8);
+            animation: orbit 30s linear infinite;
+            z-index: 1;
+        }
+
+        .satellite::before {
+            content: '';
+            position: absolute;
+            top: -5px;
+            left: 10px;
+            width: 15px;
+            height: 15px;
+            background: #3498db;
+            border-radius: 50%;
+        }
+
+        .satellite::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            right: -15px;
+            width: 30px;
+            height: 2px;
+            background: #3498db;
+        }
+
+        .star {
+            position: absolute;
+            background: #ffffff;
+            border-radius: 50%;
+            animation: twinkle 5s infinite;
+        }
+
+        @keyframes orbit {
+            0% {
+                transform: rotate(0deg) translateX(200px) rotate(0deg);
+            }
+            100% {
+                transform: rotate(360deg) translateX(200px) rotate(-360deg);
+            }
+        }
+
+        @keyframes twinkle {
+            0%, 100% { opacity: 0.2; }
+            50% { opacity: 1; }
+        }
+
+        .container {
+            position: relative;
+            width: 380px;
+            max-width: 100%;
+            padding: 30px;
+            background: rgba(10, 25, 47, 0.8);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.5);
+            overflow: hidden;
+            z-index: 10;
+        }
+
+        .container::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 380px;
+            height: 420px;
+            background: linear-gradient(0deg, transparent, transparent, #45f3ff, #45f3ff, #45f3ff);
+            z-index: 1;
+            transform-origin: bottom right;
+            animation: animate 6s linear infinite;
+        }
+
+        .container::after {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 380px;
+            height: 420px;
+            background: linear-gradient(0deg, transparent, transparent, #ff2770, #ff2770, #ff2770);
+            z-index: 1;
+            transform-origin: bottom right;
+            animation: animate 6s linear infinite;
+            animation-delay: -3s;
+        }
+
+        @keyframes animate {
+            0% {
+                transform: rotate(0deg);
+            }
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
+        .form-container {
+            position: relative;
+            inset: 5px;
+            background: #0a192f;
+            border-radius: 16px;
+            z-index: 2;
+            padding: 30px;
+        }
+
+        .form-container h2 {
+            color: #45f3ff;
+            font-size: 32px;
+            font-weight: 600;
+            text-align: center;
+            letter-spacing: 2px;
+            margin-bottom: 20px;
+        }
+
+        .form-container p {
+            color: #fff;
+            text-align: center;
+            margin-bottom: 25px;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+
+        .input-group {
+            position: relative;
+            margin-bottom: 30px;
+        }
+
+        .input-group input {
+            width: 100%;
+            padding: 15px 20px 15px 50px;
+            background: transparent;
+            border: none;
+            outline: none;
+            border-radius: 10px;
+            color: #fff;
+            font-size: 16px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: 0.3s;
+        }
+
+        .input-group input:focus {
+            border-color: #45f3ff;
+            box-shadow: 0 0 10px rgba(69, 243, 255, 0.5);
+        }
+
+        .input-group i {
+            position: absolute;
+            left: 20px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #fff;
+            font-size: 18px;
+            transition: 0.3s;
+        }
+
+        .input-group input:focus + i {
+            color: #45f3ff;
+        }
+
+        .input-group label {
+            position: absolute;
+            left: 50px;
+            top: 15px;
+            color: rgba(255, 255, 255, 0.7);
+            pointer-events: none;
+            transition: 0.3s;
+        }
+
+        .input-group input:focus ~ label,
+        .input-group input:valid ~ label {
+            top: -10px;
+            left: 20px;
+            font-size: 12px;
+            color: #45f3ff;
+            background: #0a192f;
+            padding: 0 8px;
+        }
+
+        .remember-forgot {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            font-size: 14px;
+        }
+
+        .remember-forgot label {
+            color: #fff;
+        }
+
+        .remember-forgot input {
+            accent-color: #45f3ff;
+            margin-right: 5px;
+        }
+
+        .remember-forgot a {
+            color: #45f3ff;
+            text-decoration: none;
+        }
+
+        .remember-forgot a:hover {
+            text-decoration: underline;
+        }
+
+        .btn {
+            width: 100%;
+            padding: 12px;
+            background: #45f3ff;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 18px;
+            color: #0a192f;
+            font-weight: 600;
+            transition: 0.3s;
+            margin-bottom: 20px;
+        }
+
+        .btn:hover {
+            background: #ff2770;
+            color: #fff;
+            box-shadow: 0 0 15px rgba(255, 39, 112, 0.5);
+        }
+
+        .register-link {
+            text-align: center;
+            margin-top: 25px;
+            color: #fff;
+            font-size: 14px;
+        }
+
+        .register-link a {
+            color: #45f3ff;
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        .register-link a:hover {
+            text-decoration: underline;
+        }
+
+        .earth-img {
+            display: block;
+            width: 120px;
+            height: 120px;
+            margin: 0 auto 20px;
+            filter: drop-shadow(0 0 10px rgba(69, 243, 255, 0.5));
+        }
+
+        .credential-hint {
+            text-align: center;
+            color: #45f3ff;
+            margin-top: 15px;
+            font-size: 13px;
+            background: rgba(69, 243, 255, 0.1);
+            padding: 8px;
+            border-radius: 6px;
+        }
+
+        /* Responsive design */
+        @media (max-width: 480px) {
+            .container {
+                width: 90%;
+                padding: 20px;
+            }
+            
+            .form-container {
+                padding: 20px;
+            }
+            
+            .form-container h2 {
+                font-size: 26px;
+            }
+            
+            .input-group input {
+                padding: 12px 15px 12px 45px;
+            }
+            
+            .earth-img {
+                width: 90px;
+                height: 90px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Background elements -->
+    <div class="satellite" style="top: 20%; left: 10%;"></div>
+    <div class="satellite" style="top: 70%; left: 80%; animation-delay: -15s;"></div>
+    
+    <!-- Login container -->
+    <div class="container">
+        <div class="form-container">
+            <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/2/22/Earth_Western_Hemisphere_transparent_background.png/480px-Earth_Western_Hemisphere_transparent_background.png" class="earth-img" alt="Earth">
+            <h2>Satellite Login</h2>
+            <p>Access the satellite control system</p>
+            <form id="loginForm">
+                <div class="input-group">
+                    <input type="text" id="username" required>
+                    <i class="fas fa-user"></i>
+                    <label for="username">Username</label>
+                </div>
+                <div class="input-group">
+                    <input type="password" id="password" required>
+                    <i class="fas fa-lock"></i>
+                    <label for="password">Password</label>
+                </div>
+                <div class="remember-forgot">
+                    <label>
+                        <input type="checkbox"> Remember me
+                    </label>
+                    <a href="#">Forgot Password?</a>
+                </div>
+                <button type="submit" class="btn">Login</button>
+                <div class="credential-hint">
+                    <i class="fas fa-info-circle"></i> Use username: user and password: user
+                </div>
+                <div class="register-link">
+                    <p>Don't have an account? <a href="#">Request Access</a></p>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // Create stars for background
+        function createStars() {
+            const starsCount = 150;
+            const body = document.querySelector('body');
+            
+            for (let i = 0; i < starsCount; i++) {
+                const star = document.createElement('div');
+                star.classList.add('star');
+                
+                const size = Math.random() * 3;
+                star.style.width = `${size}px`;
+                star.style.height = `${size}px`;
+                
+                star.style.left = `${Math.random() * 100}vw`;
+                star.style.top = `${Math.random() * 100}vh`;
+                star.style.animationDelay = `${Math.random() * 5}s`;
+                
+                body.appendChild(star);
+            }
+        }
+        
+        // Form validation
+        document.getElementById('loginForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            
+            if (username.trim() === '') {
+                alert('Please enter your username');
+                return;
+            }
+            
+            if (password.length < 4) {
+                alert('Password must be at least 4 characters');
+                return;
+            }
+            
+            // Check credentials
+            if (username === 'user' && password === 'user') {
+                // Simulate login process
+                const btn = document.querySelector('.btn');
+                btn.textContent = 'Connecting to Satellite...';
+                btn.disabled = true;
+                
+                setTimeout(() => {
+                    // alert('Login successful! Welcome to Satellite Control.');
+                    btn.textContent = 'Login';
+                    window.location.href = 'dashboard.html';
+                    btn.disabled = false;
+                }, 1500);
+            } else {
+                alert('Invalid credentials. Please use username: user and password: user');
+            }
+        });
+        
+        // Add floating labels functionality
+        const inputs = document.querySelectorAll('input');
+        inputs.forEach(input => {
+            // Check if input has value on page load
+            if (input.value !== '') {
+                input.classList.add('has-value');
+            }
+            
+            input.addEventListener('focus', () => {
+                input.classList.add('has-value');
+            });
+            
+            input.addEventListener('blur', () => {
+                if (input.value === '') {
+                    input.classList.remove('has-value');
+                }
+            });
+        });
+        
+        // Initialize the page
+        window.addEventListener('load', function() {
+            createStars();
+        });
+    </script>
+</body>
+</html>

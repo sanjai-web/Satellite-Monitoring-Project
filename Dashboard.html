@@ -1,0 +1,656 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sensor Data Dashboard</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #0a192f 0%, #203a43 50%, #2c5364 100%);
+            color: #fff;
+            min-height: 100vh;
+            position: relative;
+            overflow-x: hidden;
+            padding: 20px;
+        }
+
+        /* Header Styles */
+        header {
+            text-align: center;
+            padding: 20px 0;
+            margin-bottom: 30px;
+            position: relative;
+        }
+
+        h1 {
+            color: #45f3ff;
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            text-shadow: 0 0 10px rgba(69, 243, 255, 0.5);
+        }
+
+        .subtitle {
+            color: #ff2770;
+            font-size: 1.2rem;
+            margin-bottom: 20px;
+        }
+
+        /* Dashboard Layout */
+        .dashboard {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .sensor-card {
+            background: rgba(10, 25, 47, 0.8);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+            transition: transform 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .sensor-card::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(45deg, transparent, rgba(69, 243, 255, 0.1), rgba(255, 39, 112, 0.1), transparent);
+            transform: rotate(45deg);
+            z-index: 1;
+        }
+
+        .sensor-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .card-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 15px;
+            position: relative;
+            z-index: 2;
+        }
+
+        .card-header i {
+            font-size: 24px;
+            margin-right: 10px;
+            color: #45f3ff;
+        }
+
+        .card-header h2 {
+            font-size: 1.5rem;
+            color: #fff;
+        }
+
+        .value-display {
+            font-size: 2.5rem;
+            text-align: center;
+            margin: 15px 0;
+            color: #ff2770;
+            font-weight: bold;
+            position: relative;
+            z-index: 2;
+        }
+
+        .chart-container {
+            height: 200px;
+            position: relative;
+            z-index: 2;
+        }
+
+        .status {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 15px;
+            position: relative;
+            z-index: 2;
+        }
+
+        .status-item {
+            text-align: center;
+        }
+
+        .status-label {
+            font-size: 0.9rem;
+            color: #45f3ff;
+        }
+
+        .status-value {
+            font-size: 1.2rem;
+            font-weight: bold;
+        }
+
+        /* Satellite and star elements */
+        .satellite {
+            position: absolute;
+            width: 60px;
+            height: 20px;
+            background: #ffffff;
+            border-radius: 10px;
+            box-shadow: 0 0 20px rgba(0, 150, 255, 0.8);
+            animation: orbit 30s linear infinite;
+            z-index: 1;
+        }
+
+        .satellite::before {
+            content: '';
+            position: absolute;
+            top: -5px;
+            left: 10px;
+            width: 15px;
+            height: 15px;
+            background: #3498db;
+            border-radius: 50%;
+        }
+
+        .satellite::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            right: -15px;
+            width: 30px;
+            height: 2px;
+            background: #3498db;
+        }
+
+        .star {
+            position: absolute;
+            background: #ffffff;
+            border-radius: 50%;
+            animation: twinkle 5s infinite;
+        }
+
+        @keyframes orbit {
+            0% {
+                transform: rotate(0deg) translateX(200px) rotate(0deg);
+            }
+            100% {
+                transform: rotate(360deg) translateX(200px) rotate(-360deg);
+            }
+        }
+
+        @keyframes twinkle {
+            0%, 100% { opacity: 0.2; }
+            50% { opacity: 1; }
+        }
+
+        /* Footer */
+        footer {
+            text-align: center;
+            margin-top: 40px;
+            padding: 20px;
+            color: #45f3ff;
+            font-size: 0.9rem;
+        }
+
+        /* Responsive design */
+        @media (max-width: 768px) {
+            .dashboard {
+                grid-template-columns: 1fr;
+            }
+            
+            h1 {
+                font-size: 2rem;
+            }
+            
+            .value-display {
+                font-size: 2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Background elements -->
+    <div class="satellite" style="top: 10%; left: 5%;"></div>
+    <div class="satellite" style="top: 80%; left: 85%; animation-delay: -15s;"></div>
+    
+    <header>
+        <h1>Sensor Data Dashboard</h1>
+        <p class="subtitle">Real-time monitoring of environmental sensors</p>
+    </header>
+    
+    <main class="dashboard">
+        <!-- MQ-7 Gas Sensor Card -->
+        <div class="sensor-card">
+            <div class="card-header">
+                <i class="fas fa-wind"></i>
+                <h2>MQ-7 Gas Sensor</h2>
+            </div>
+            <div class="value-display">
+                <span id="co-value">120</span> ppm
+            </div>
+            <div class="chart-container">
+                <canvas id="co-chart"></canvas>
+            </div>
+            <div class="status">
+                <div class="status-item">
+                    <div class="status-label">Status</div>
+                    <div class="status-value" id="co-status">Normal</div>
+                </div>
+                <div class="status-item">
+                    <div class="status-label">Trend</div>
+                    <div class="status-value" id="co-trend">↗ Rising</div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- BMP180 Pressure Sensor Card -->
+        <div class="sensor-card">
+            <div class="card-header">
+                <i class="fas fa-tachometer-alt"></i>
+                <h2>BMP180 Pressure</h2>
+            </div>
+            <div class="value-display">
+                <span id="pressure-value">1013.25</span> hPa
+            </div>
+            <div class="chart-container">
+                <canvas id="pressure-chart"></canvas>
+            </div>
+            <div class="status">
+                <div class="status-item">
+                    <div class="status-label">Altitude</div>
+                    <div class="status-value" id="altitude-value">102.3 m</div>
+                </div>
+                <div class="status-item">
+                    <div class="status-label">Trend</div>
+                    <div class="status-value" id="pressure-trend">→ Stable</div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- DHT11 Temperature & Humidity Card -->
+        <div class="sensor-card">
+            <div class="card-header">
+                <i class="fas fa-temperature-high"></i>
+                <h2>DHT11 Sensor</h2>
+            </div>
+            <div class="value-display">
+                <span id="temp-value">23.5</span> °C
+            </div>
+            <div class="chart-container">
+                <canvas id="temp-chart"></canvas>
+            </div>
+            <div class="status">
+                <div class="status-item">
+                    <div class="status-label">Humidity</div>
+                    <div class="status-value" id="humidity-value">45%</div>
+                </div>
+                <div class="status-item">
+                    <div class="status-label">Comfort</div>
+                    <div class="status-value" id="comfort-value">Good</div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- DS1307 RTC Card -->
+        <div class="sensor-card">
+            <div class="card-header">
+                <i class="fas fa-clock"></i>
+                <h2>DS1307 RTC</h2>
+            </div>
+            <div class="value-display">
+                <span id="time">00:00:00</span>
+            </div>
+            <div class="chart-container">
+                <canvas id="rtc-chart"></canvas>
+            </div>
+            <div class="status">
+                <div class="status-item">
+                    <div class="status-label">Date</div>
+                    <div class="status-value" id="date">01-01-2023</div>
+                </div>
+                <div class="status-item">
+                    <div class="status-label">Uptime</div>
+                    <div class="status-value" id="uptime">12:34:56</div>
+                </div>
+            </div>
+        </div>
+    </main>
+    
+    <footer>
+        <p>Satellite Theme Sensor Dashboard | Real-time Monitoring System</p>
+    </footer>
+
+    <script>
+        // Create stars for background
+        function createStars() {
+            const starsCount = 100;
+            const body = document.querySelector('body');
+            
+            for (let i = 0; i < starsCount; i++) {
+                const star = document.createElement('div');
+                star.classList.add('star');
+                
+                const size = Math.random() * 3;
+                star.style.width = `${size}px`;
+                star.style.height = `${size}px`;
+                
+                star.style.left = `${Math.random() * 100}vw`;
+                star.style.top = `${Math.random() * 100}vh`;
+                star.style.animationDelay = `${Math.random() * 5}s`;
+                
+                body.appendChild(star);
+            }
+        }
+        
+        // Generate sample data for sensors
+        function generateData(baseValue, variance, count) {
+            const data = [];
+            let value = baseValue;
+            
+            for (let i = 0; i < count; i++) {
+                value += (Math.random() * variance * 2) - variance;
+                data.push(value);
+            }
+            
+            return data;
+        }
+        
+        // Initialize charts
+        function initCharts() {
+            // CO Chart
+            const coCtx = document.getElementById('co-chart').getContext('2d');
+            const coChart = new Chart(coCtx, {
+                type: 'line',
+                data: {
+                    labels: Array.from({length: 20}, (_, i) => i + 1),
+                    datasets: [{
+                        label: 'CO Level (ppm)',
+                        data: generateData(120, 15, 20),
+                        borderColor: '#ff2770',
+                        backgroundColor: 'rgba(255, 39, 112, 0.1)',
+                        borderWidth: 2,
+                        tension: 0.4,
+                        fill: true
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: false,
+                            grid: {
+                                color: 'rgba(255, 255, 255, 0.1)'
+                            },
+                            ticks: {
+                                color: '#fff'
+                            }
+                        },
+                        x: {
+                            grid: {
+                                display: false
+                            },
+                            ticks: {
+                                color: '#fff'
+                            }
+                        }
+                    }
+                }
+            });
+            
+            // Pressure Chart
+            const pressureCtx = document.getElementById('pressure-chart').getContext('2d');
+            const pressureChart = new Chart(pressureCtx, {
+                type: 'line',
+                data: {
+                    labels: Array.from({length: 20}, (_, i) => i + 1),
+                    datasets: [{
+                        label: 'Pressure (hPa)',
+                        data: generateData(1013, 5, 20),
+                        borderColor: '#45f3ff',
+                        backgroundColor: 'rgba(69, 243, 255, 0.1)',
+                        borderWidth: 2,
+                        tension: 0.4,
+                        fill: true
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: false,
+                            grid: {
+                                color: 'rgba(255, 255, 255, 0.1)'
+                            },
+                            ticks: {
+                                color: '#fff'
+                            }
+                        },
+                        x: {
+                            grid: {
+                                display: false
+                            },
+                            ticks: {
+                                color: '#fff'
+                            }
+                        }
+                    }
+                }
+            });
+            
+            // Temperature Chart
+            const tempCtx = document.getElementById('temp-chart').getContext('2d');
+            const tempChart = new Chart(tempCtx, {
+                type: 'line',
+                data: {
+                    labels: Array.from({length: 20}, (_, i) => i + 1),
+                    datasets: [{
+                        label: 'Temperature (°C)',
+                        data: generateData(23.5, 1.5, 20),
+                        borderColor: '#ffa726',
+                        backgroundColor: 'rgba(255, 167, 38, 0.1)',
+                        borderWidth: 2,
+                        tension: 0.4,
+                        fill: true
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: false,
+                            grid: {
+                                color: 'rgba(255, 255, 255, 0.1)'
+                            },
+                            ticks: {
+                                color: '#fff'
+                            }
+                        },
+                        x: {
+                            grid: {
+                                display: false
+                            },
+                            ticks: {
+                                color: '#fff'
+                            }
+                        }
+                    }
+                }
+            });
+            
+            // RTC Chart (showing periodic data)
+            const rtcCtx = document.getElementById('rtc-chart').getContext('2d');
+            const rtcChart = new Chart(rtcCtx, {
+                type: 'bar',
+                data: {
+                    labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+                    datasets: [{
+                        label: 'Activity',
+                        data: [12, 19, 15, 17, 14, 21, 16],
+                        backgroundColor: 'rgba(69, 243, 255, 0.5)',
+                        borderColor: 'rgba(69, 243, 255, 1)',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            grid: {
+                                color: 'rgba(255, 255, 255, 0.1)'
+                            },
+                            ticks: {
+                                color: '#fff'
+                            }
+                        },
+                        x: {
+                            grid: {
+                                display: false
+                            },
+                            ticks: {
+                                color: '#fff'
+                            }
+                        }
+                    }
+                }
+            });
+            
+            return { coChart, pressureChart, tempChart, rtcChart };
+        }
+        
+        // Update sensor values
+        function updateSensorValues(charts) {
+            // Update CO values
+            const newCOValue = 100 + Math.random() * 50;
+            document.getElementById('co-value').textContent = newCOValue.toFixed(1);
+            
+            // Update CO status
+            const coStatus = document.getElementById('co-status');
+            const coTrend = document.getElementById('co-trend');
+            
+            if (newCOValue > 140) {
+                coStatus.textContent = 'Warning';
+                coStatus.style.color = '#ff2770';
+            } else if (newCOValue > 120) {
+                coStatus.textContent = 'Elevated';
+                coStatus.style.color = '#ffa726';
+            } else {
+                coStatus.textContent = 'Normal';
+                coStatus.style.color = '#45f3ff';
+            }
+            
+            // Update pressure values
+            const newPressureValue = 1000 + Math.random() * 30;
+            document.getElementById('pressure-value').textContent = newPressureValue.toFixed(2);
+            
+            // Update altitude (calculated from pressure)
+            const altitude = 44330 * (1 - Math.pow(newPressureValue / 1013.25, 0.1903));
+            document.getElementById('altitude-value').textContent = altitude.toFixed(1) + ' m';
+            
+            // Update temperature values
+            const newTempValue = 20 + Math.random() * 10;
+            document.getElementById('temp-value').textContent = newTempValue.toFixed(1);
+            
+            // Update humidity values
+            const newHumidityValue = 30 + Math.random() * 50;
+            document.getElementById('humidity-value').textContent = Math.round(newHumidityValue) + '%';
+            
+            // Update comfort value based on temp and humidity
+            const comfortValue = document.getElementById('comfort-value');
+            if (newTempValue > 25 && newHumidityValue > 70) {
+                comfortValue.textContent = 'Uncomfortable';
+                comfortValue.style.color = '#ff2770';
+            } else if (newTempValue >= 20 && newTempValue <= 25 && newHumidityValue >= 40 && newHumidityValue <= 70) {
+                comfortValue.textContent = 'Good';
+                comfortValue.style.color = '#45f3ff';
+            } else {
+                comfortValue.textContent = 'Fair';
+                comfortValue.style.color = '#ffa726';
+            }
+            
+            // Update charts with new data
+            charts.coChart.data.datasets[0].data.push(newCOValue);
+            charts.coChart.data.datasets[0].data.shift();
+            
+            charts.pressureChart.data.datasets[0].data.push(newPressureValue);
+            charts.pressureChart.data.datasets[0].data.shift();
+            
+            charts.tempChart.data.datasets[0].data.push(newTempValue);
+            charts.tempChart.data.datasets[0].data.shift();
+            
+            charts.coChart.update();
+            charts.pressureChart.update();
+            charts.tempChart.update();
+        }
+        
+        // Update clock
+        function updateClock() {
+            const now = new Date();
+            const timeStr = now.toLocaleTimeString();
+            const dateStr = now.toLocaleDateString();
+            
+            document.getElementById('time').textContent = timeStr;
+            document.getElementById('date').textContent = dateStr;
+        }
+        
+        // Initialize the dashboard
+        function initDashboard() {
+            createStars();
+            const charts = initCharts();
+            updateClock();
+            
+            // Update clock every second
+            setInterval(updateClock, 1000);
+            
+            // Update sensor values every 3 seconds
+            setInterval(() => updateSensorValues(charts), 3000);
+            
+            // Initialize uptime counter
+            let uptimeSeconds = 0;
+            setInterval(() => {
+                uptimeSeconds++;
+                const hours = Math.floor(uptimeSeconds / 3600);
+                const minutes = Math.floor((uptimeSeconds % 3600) / 60);
+                const seconds = uptimeSeconds % 60;
+                document.getElementById('uptime').textContent = 
+                    `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+            }, 1000);
+        }
+        
+        // Start the dashboard when the page loads
+        window.addEventListener('load', initDashboard);
+    </script>
+</body>
+</html>
